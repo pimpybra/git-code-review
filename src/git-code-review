@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+
+USAGE="[FLAGS] <pr_branch>
+
+Generate code-review branch that has been resolved against a base branch.
+
+Flags:
+  -b <branch>, --base <branch>   The base branch that the pull request will be merged into
+                                 default: master
+                         
+  --remote <remote>              Pull from the remote when updating the base and
+                                 pull-request branchs before branch resolution
+
+  --base-remote <remote>         Pull from the remote when updating the base 
+                                 branch before branch resolution
+
+  --pr-remote <remote>           Pull from the remote when updating the 
+                                 pull-request branch before branch resolution
+
+  --resolve-method METHOD        Use METHOD to resolve the differences between
+                                 the base and pull-request branches
+                                 Possible methods are as follows:
+                                 
+                                 rebase    reapply the pull-requests commits on top
+                                           of the base branch's tip
+                                 merge     attempt to merge the pull-requests branch 
+                                           into master
+"
+  
+source "$(git --exec-path)/git-sh-setup"
+
+function fetch() {
+        git fetch "${1}"
+}
+
+function branch_exists() {
+    git rev-parse --verify "$1" > /dev/null 2>&1
+    return
+}
+
+function main() {
+    
+    local base_branch="$(git config code-review.base-branch || echo -n 'master')"
+    local base_remote="$(git config code-review.base-remote || echo -n 'origin')"
+    local pr_branch=""
+    local pr_remote="$(git config code-review.pr-remote     || echo ${base_remote})"
+    local branch_resolution_command="rebase"
+    while [ $# -gt 0 ]; do
+        case $1 in
+            -b | --base)
+                base_branch="$2"
+                shift 2
+                ;;
+            --remote)
+                base_remote="$2"
+                pr_remote="$2"
+                shift 2
+                ;;
+            --base-remote)
+                base_remote="$2"
+                shift 2
+                ;;
+
+            --pr-remote)
+                pr_remote="$2"
+                shift 2
+                ;;
+            --resolve-method)
+                branch_resolution_command="$2"
+                shift 2
+                ;;
+            *)
+                pr_branch="$1"
+                shift
+                ;;
+        esac
+    done
+
+    # FIXME: The resolve method should be checked to make sure that it is either 'merge' or 'rebase'
+    
+    local merge_request_branch="code-review/${pr_branch}"
+    require_work_tree_exists
+    cd_to_toplevel
+    require_clean_work_tree "rebase" "Please commit or stash changes."
+    if branch_exists "${merge_request_branch}"; then
+        echo "${merge_request_branch} already exists. Please delete or checkout."
+        die
+    fi
+    
+    fetch "${base_remote}"
+
+    # Save the extra fetch
+    if [ ! "${pr_remote}" != "${base_remote}" ]; then
+        fetch "${pr_remote}"
+    fi
+
+    
+    git branch "${merge_request_branch}" "${pr_branch}"
+    git checkout "${merge_request_branch}"
+
+    git $branch_resolution_command "${base_branch}"
+    echo "${merge_request_branch} created. Remember to delete the branch when you are finished."
+}
+
+
+main "$@"

@@ -1,0 +1,12 @@
+
+
+_git-code-review()
+{
+    local cur opts
+    local cur=${COMP_WORDS[$COMP_CWORD]}
+    opts="$(git branch -a | sed '/ -> /d' | sed 's:remotes/origin/::g')"
+    COMPREPLY=( $(compgen -W "$opts" -- $cur ) )
+}
+
+complete -F _git-code-review git-code-review
+complete -F _git-code-review "git code-review"
