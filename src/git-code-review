@@ -97,6 +97,7 @@ function main() {
     
     git branch "${merge_request_branch}" "${pr_branch}"
     git checkout "${merge_request_branch}"
+    git branch --unset-upstream
 
     git $branch_resolution_command "${base_branch}"
     echo "${merge_request_branch} created. Remember to delete the branch when you are finished."
