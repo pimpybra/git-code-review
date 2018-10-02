@@ -1,36 +1,41 @@
 #!/usr/bin/env bash
 
-USAGE="[FLAGS] <pr_branch>
+USAGE="<COMMAND> [FLAGS] <pr_branch>
 
 Generate code-review branch that has been resolved against a base branch.
 
-Flags:
-  -b <branch>, --base <branch>   The base branch that the pull request will be merged into
-                                 default: master
-                         
-  --remote <remote>              Pull from the remote when updating the base and
-                                 pull-request branchs before branch resolution
+Commands:
+  start                                   generate the code-review branch and resolve it against a base branch
 
-  --base-remote <remote>         Pull from the remote when updating the base 
-                                 branch before branch resolution
+         Flags:
+           -b <branch>, --base <branch>   The base branch that the pull request will be merged into
+                                          default: master
+                                                          
+           --remote <remote>              Pull from the remote when updating the base and
+                                          pull-request branchs before branch resolution
 
-  --pr-remote <remote>           Pull from the remote when updating the 
-                                 pull-request branch before branch resolution
+           --base-remote <remote>         Pull from the remote when updating the base 
+                                          branch before branch resolution
 
-  --resolve-method METHOD        Use METHOD to resolve the differences between
-                                 the base and pull-request branches
-                                 Possible methods are as follows:
+           --pr-remote <remote>           Pull from the remote when updating the 
+                                          pull-request branch before branch resolution
+
+           --resolve-method METHOD        Use METHOD to resolve the differences between
+                                          the base and pull-request branches
+                                          Possible methods are as follows:
                                  
-                                 rebase    reapply the pull-requests commits on top
-                                           of the base branch's tip
-                                 merge     attempt to merge the pull-requests branch 
-                                           into master
+                                          rebase    reapply the pull-requests commits on top
+                                                    of the base branch's tip
+                                          merge     attempt to merge the pull-requests branch 
+                                                    into master
+
+  clear
 "
-  
+
 source "$(git --exec-path)/git-sh-setup"
 
 function fetch() {
-        git fetch "${1}"
+    git fetch "${1}"
 }
 
 function branch_exists() {
@@ -38,13 +43,23 @@ function branch_exists() {
     return
 }
 
-function main() {
-    
+function clear_all() {
+    for branch in $(git branch); do
+        if [[ $branch == *"code-review/"* ]]; then
+            git branch -D $branch
+        fi
+    done
+}
+
+function start_code_review() {
+
     local base_branch="$(git config code-review.base-branch || echo -n 'master')"
     local base_remote="$(git config code-review.base-remote || echo -n 'origin')"
     local pr_branch=""
     local pr_remote="$(git config code-review.pr-remote     || echo ${base_remote})"
     local branch_resolution_command="rebase"
+
+
     while [ $# -gt 0 ]; do
         case $1 in
             -b | --base)
@@ -100,6 +115,28 @@ function main() {
 
     git $branch_resolution_command "${base_branch}"
     echo "${merge_request_branch} created. Remember to delete the branch when you are finished."
+
+}
+
+
+function get_action() {
+    case $1 in
+    clear)
+        echo "clear_all"
+        ;;
+    start)
+        echo "start_code_review"
+        ;;
+    *)
+        usage
+    esac
+}
+
+function main() {
+    
+    action=$(get_action $1)
+    shift 1
+    $action "$@"
 }
 
 
