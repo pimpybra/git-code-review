@@ -5,32 +5,33 @@ USAGE="<COMMAND> [FLAGS] <pr_branch>
 Generate code-review branch that has been resolved against a base branch.
 
 Commands:
-  start                                   generate the code-review branch and resolve it against a base branch
+  start        generate the code-review branch and resolve it against a base branch
 
          Flags:
            -b <branch>, --base <branch>   The base branch that the pull request will be merged into
                                           default: master
-                                                          
+
            --remote <remote>              Pull from the remote when updating the base and
                                           pull-request branchs before branch resolution
 
-           --base-remote <remote>         Pull from the remote when updating the base 
+           --base-remote <remote>         Pull from the remote when updating the base
                                           branch before branch resolution
 
-           --pr-remote <remote>           Pull from the remote when updating the 
+           --pr-remote <remote>           Pull from the remote when updating the
                                           pull-request branch before branch resolution
 
            --resolve-method METHOD        Use METHOD to resolve the differences between
                                           the base and pull-request branches
                                           Possible methods are as follows:
-                                 
+
                                           rebase    reapply the pull-requests commits on top
                                                     of the base branch's tip
-                                          merge     attempt to merge the pull-requests branch 
+                                          merge     attempt to merge the pull-requests branch
                                                     into master
 
-  clear
-"
+  finish       remove the current code-review branch
+  clear        remove all of the code-review branches
+  "
 
 source "$(git --exec-path)/git-sh-setup"
 
@@ -92,7 +93,7 @@ function start_code_review() {
     done
 
     # FIXME: The resolve method should be checked to make sure that it is either 'merge' or 'rebase'
-    
+
     local merge_request_branch="code-review/${pr_branch}"
     require_work_tree_exists
     cd_to_toplevel
@@ -101,7 +102,7 @@ function start_code_review() {
         echo "${merge_request_branch} already exists. Please delete or checkout."
         die
     fi
-    
+
     fetch "${base_remote}"
 
     # Save the extra fetch
@@ -109,7 +110,7 @@ function start_code_review() {
         fetch "${pr_remote}"
     fi
 
-    
+
     git branch "${merge_request_branch}" "${pr_branch}"
     git checkout "${merge_request_branch}"
     git branch --unset-upstream
@@ -119,25 +120,37 @@ function start_code_review() {
 
 }
 
-
-function get_action() {
-    case $1 in
-    clear)
-        echo "clear_all"
-        ;;
-    start)
-        echo "start_code_review"
-        ;;
-    *)
-        usage
-    esac
+function clean_up_current_branch() {
+    local current_branch="$(git rev-parse --abbrev-ref HEAD)"
+    local base_branch="$(git config code-review.base-branch || echo -n 'master')"
+    if [[ $current_branch != *"code-review/"* ]]; then
+        echo "current branch was not created by git code-review"
+        return 1
+    fi
+    
+    git checkout ${base_branch}
+    git branch -D ${current_branch}
 }
 
 function main() {
-    
-    action=$(get_action $1)
-    shift 1
-    $action "$@"
+    case "$1" in
+        "clear")
+            shift 1
+            clear_all "$@"
+            ;;
+        "")
+            start_code_review "$@"
+            ;;
+        "start")
+            shift 1
+            start_code_review "$@"
+            ;;
+        "finish")
+            clean_up_current_branch
+            ;;
+        *)
+            usage
+    esac
 }
 
 
