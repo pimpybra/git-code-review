@@ -5,29 +5,39 @@ USAGE="<COMMAND> [FLAGS] <pr_branch>
 Generate code-review branch that has been resolved against a base branch.
 
 Commands:
-  start        generate the code-review branch and resolve it against a base branch
+  start        generate the code-review branch and resolve it against a base 
+               branch
 
-         Flags:
-           -b <branch>, --base <branch>   The base branch that the pull request will be merged into
-                                          default: master
+               Flags:
+                 -b <branch>, --base <branch>   The base branch that the pull 
+                                                request will be merged into
+                                                default: master
 
-           --remote <remote>              Pull from the remote when updating the base and
-                                          pull-request branchs before branch resolution
+                 --remote <remote>              Pull from the remote when 
+                                                updating the base and 
+                                                pull-request branchs before 
+                                                branch resolution
 
-           --base-remote <remote>         Pull from the remote when updating the base
-                                          branch before branch resolution
+                 --base-remote <remote>         Pull from the remote when 
+                                                updating the base branch before
+                                                 branch resolution
 
-           --pr-remote <remote>           Pull from the remote when updating the
-                                          pull-request branch before branch resolution
+                 --pr-remote <remote>           Pull from the remote when 
+                                                updating the  pull-request 
+                                                branch before branch resolution
 
-           --resolve-method METHOD        Use METHOD to resolve the differences between
-                                          the base and pull-request branches
-                                          Possible methods are as follows:
+                 --resolve-method METHOD        Use METHOD to resolve the 
+                                                differences between the base and
+                                                pull-request branches
+                                                Possible methods are as follows:
 
-                                          rebase    reapply the pull-requests commits on top
-                                                    of the base branch's tip
-                                          merge     attempt to merge the pull-requests branch
-                                                    into master
+                                                rebase    reapply the 
+                                                          pull-requests commits
+                                                          on top of the base 
+                                                          branch's tip
+                                                merge     attempt to merge the 
+                                                          pull-requests branch
+                                                          into master
 
   finish       remove the current code-review branch
   clear        remove all of the code-review branches
