@@ -76,7 +76,6 @@ function start_code_review() {
                 base_remote="$2"
                 shift 2
                 ;;
-
             --pr-remote)
                 pr_remote="$2"
                 shift 2
@@ -110,14 +109,12 @@ function start_code_review() {
         fetch "${pr_remote}"
     fi
 
-
     git branch "${merge_request_branch}" "${pr_branch}"
     git checkout "${merge_request_branch}"
     git branch --unset-upstream
 
     git $branch_resolution_command "${base_branch}"
     echo "${merge_request_branch} created. Remember to delete the branch when you are finished."
-
 }
 
 function clean_up_current_branch() {
