@@ -17,16 +17,21 @@ Commands:
 
            --remote <remote>              Pull from the remote when updating the base and
                                           pull-request branchs before branch resolution
+                                          (Same as calling --base-remote and --pr-remote with the same value)
+                                          default: origin
 
            --base-remote <remote>         Pull from the remote when updating the base
                                           branch before branch resolution
+                                          default: origin
 
            --pr-remote <remote>           Pull from the remote when updating the
                                           pull-request branch before branch resolution
+                                          default: origin
 
            --resolve-method METHOD        Use METHOD to resolve the differences between
                                           the base and pull-request branches
                                           Possible methods are as follows:
+                                          default: rebase
 
                                           rebase    reapply the pull-requests commits on top
                                                     of the base branch's tip
